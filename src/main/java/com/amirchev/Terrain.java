@@ -1,7 +1,12 @@
 package com.amirchev;
 
-import com.amirchev.contents.FieldContent;
-import com.amirchev.contents.FieldContentFactory;
+import com.amirchev.exceptions.InvalidLineWidth;
+import com.amirchev.exceptions.InvalidTerrainDimensionsException;
+import com.amirchev.exceptions.InvalidTerrainFormat;
+import com.amirchev.exceptions.InvalidTerrainHeight;
+import com.googlecode.lanterna.TextCharacter;
+import com.googlecode.lanterna.graphics.BasicTextImage;
+import com.googlecode.lanterna.graphics.TextImage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,77 +17,75 @@ import java.util.Scanner;
  * Class responsible for creation and management of the terrain the game is played on
  */
 public class Terrain {
-    private FieldContent[][] fields;
+    private TextImage terrain;
 
     /**
      * Deserializes string from file with filename - first pair of integers are the dimensions of the terrain,
-     * while all other pairs notify where bricks should be placed
+     * while all other lines notify where bricks should be placed
      *
      * @param filename - should be existing file with whitespace separated integers
      * @throws FileNotFoundException
-     * @throws NoSuchElementException
+     * @throws InvalidTerrainFormat
      */
-    public Terrain(final String filename) throws FileNotFoundException, NoSuchElementException {
+    public Terrain(final String filename) throws FileNotFoundException, InvalidTerrainFormat {
 
-        Scanner scanner = new Scanner(new File(filename));
+        try (Scanner in = new Scanner(new File(filename))) {
+            this.terrain = initTerrain(in, filename);
 
-        final int width = scanner.nextInt();
-        final int height = scanner.nextInt();
-        this.fields = new FieldContent[height][width];
-
-        while (scanner.hasNextInt()) {
-            final int firstCoord = scanner.nextInt();
-            if (scanner.hasNextInt()) {
-                this.fields[firstCoord][scanner.nextInt()] =
-                        FieldContentFactory.make(FieldContentFactory.FieldContentEnum.BRICK);
-            }
-        }
-
-        scanner.close();
-    }
-
-    /**
-     * Prints the whole terrain with apples, bricks, snake and adds border.
-     */
-    public void print() {
-        final int BORDER_WIDTH = 1;
-        final char BORDER_SYMBOL = '#';
-        final char EMPTY_FIELD = ' ';
-
-        for (int i = 0; i < fields.length + 2 * BORDER_WIDTH; i++) {
-            for (int j = 0; j < fields[0].length + 2 * BORDER_WIDTH; j++) {
-                if (isOnBorder(i, j, BORDER_WIDTH)) {
-                    System.out.print(BORDER_SYMBOL);
-                } else {
-                    if (fields[i - BORDER_WIDTH][j - BORDER_WIDTH] != null) {
-                        fields[i - BORDER_WIDTH][j - BORDER_WIDTH].printContent();
-                    } else {
-                        System.out.print(EMPTY_FIELD);
-                    }
+            int lines = 0;
+            while (in.hasNextLine()) {
+                String line = in.nextLine();
+                if(line.length() < terrain.getSize().getColumns()) {
+                    throw new InvalidLineWidth(line.length(), terrain.getSize().getColumns(), 3 + lines, filename);
                 }
+                for (int i = 0 ; i < line.length(); i++) {
+                    terrain.setCharacterAt(i, lines, new TextCharacter(line.charAt(i)));
+                }
+                lines++;
             }
-            System.out.println();
+            if(lines < this.terrain.getSize().getRows()) {
+                throw  new InvalidTerrainHeight(terrain.getSize().getRows(), lines, filename);
+            }
         }
     }
 
-    /**
-     * Sets field to value of content
-     *
-     * @param field - pair of row and column
-     * @param content - field content object
-     */
-    public void setField(final Field field, FieldContent content) {
-        if(field.getRow() < 0 || field.getRow() >= fields.length ||
-            field.getCol() < 0 || field.getCol() >= fields[0].length) {
-            throw new IndexOutOfBoundsException();
-        }
-        this.fields[field.getRow()][field.getCol()] = content;
+    public TextImage getTerrain() {
+        return this.terrain;
     }
 
-    private boolean isOnBorder(final int i, final int j, final int width) {
-        return i < width ||
-                j < width ||
-                i > fields.length + width - 1 ||
-                j > fields[0].length + width - 1;
+    public void setField(final Field field, final char symbol) {
+        this.terrain.setCharacterAt(field.getCol(), field.getRow(), new TextCharacter(symbol));
+    }
+
+    public boolean isFieldWall(final Field field) {
+        return this.terrain.getCharacterAt(field.getCol(), field.getRow())
+                .getCharacter() == '#';
+    }
+
+    public int getWidth() {
+        return this.terrain.getSize().getColumns();
+    }
+
+    public int getHeight() {
+        return this.terrain.getSize().getRows();
+    }
+
+    private TextImage initTerrain(Scanner scanner, final String filename) throws InvalidTerrainDimensionsException {
+        int width,height;
+        try {
+            width = scanner.nextInt();
+        }
+        catch (NoSuchElementException e) {
+            throw new InvalidTerrainDimensionsException("width", 1, filename);
+        }
+
+        try {
+            height = scanner.nextInt();
+        }
+        catch (NoSuchElementException e) {
+            throw new InvalidTerrainDimensionsException("height", 2, filename);
+        }
+        scanner.nextLine();
+        return new BasicTextImage(width, height);
     }
 }
