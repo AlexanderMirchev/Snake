@@ -6,29 +6,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Main {
+public final class Main {
 
-    public static void main(String[] args) throws IOException {
-//        Terminal terminal = new DefaultTerminalFactory().createTerminal();
-//        Screen screen = new TerminalScreen(terminal);
-//        TextGraphics tg = screen.newTextGraphics();
-//
-//        screen.startScreen();
-//        tg.putString(10,10, "Hello World");
-//
-//        screen.refresh();
-//        screen.readInput();
-//        screen.close();
+    public static void main(String[] args) {
         System.out.print("Input file name \n~ ");
         Scanner scanner = new Scanner(System.in);
         String filename = scanner.nextLine();
         scanner.close();
+
         try {
             Terrain terrain = new Terrain(filename);
-//            terrain.print();
             Game game = new Game(terrain);
-            game.run();
-//            game.run();
+            System.out.println(String.format("Game over! Your score %d", game.run()));
         }
         catch (InvalidTerrainFormat e) {
             System.out.println(e.getMessage());
@@ -36,14 +25,11 @@ public class Main {
         catch (FileNotFoundException e) {
             System.out.println("File does not exist");
         }
-//        catch (NoSuchElementException e) {
-//            System.out.println("File not in proper format");
-//        }
         catch (InterruptedException e) {
             System.out.println("Game was stopped");
         }
         catch (IOException e) {
-
+            System.out.println("Error with the input");
         }
     }
 }

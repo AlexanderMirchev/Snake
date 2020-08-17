@@ -16,15 +16,18 @@ import java.util.Scanner;
 /**
  * Class responsible for creation and management of the terrain the game is played on
  */
-public class Terrain {
+public final class Terrain {
+    public static final char BRICK_SYMBOL='#';
+    public static final char GRASS_SYMBOL=' ';
+
     private TextImage terrain;
 
     /**
      * Deserializes string from file with filename - first pair of integers are the dimensions of the terrain,
      * while all other lines notify where bricks should be placed
      *
-     * @param filename - should be existing file with whitespace separated integers
-     * @throws FileNotFoundException
+     * @param filename - should be existing file with 2 integers and according number of lines representing field
+     * @throws FileNotFoundException on wrong file name
      * @throws InvalidTerrainFormat
      */
     public Terrain(final String filename) throws FileNotFoundException, InvalidTerrainFormat {
@@ -57,9 +60,8 @@ public class Terrain {
         this.terrain.setCharacterAt(field.getCol(), field.getRow(), new TextCharacter(symbol));
     }
 
-    public boolean isFieldWall(final Field field) {
-        return this.terrain.getCharacterAt(field.getCol(), field.getRow())
-                .getCharacter() == '#';
+    public char getField(final Field field) {
+        return this.terrain.getCharacterAt(field.getCol(), field.getRow()).getCharacter();
     }
 
     public int getWidth() {

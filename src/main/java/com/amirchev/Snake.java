@@ -1,27 +1,43 @@
 package com.amirchev;
 
-import java.awt.event.KeyEvent;
-import java.io.Console;
-import java.util.ArrayList;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.AbstractMap;
 
-public class Snake {
+/**
+ * Class representing snake
+ */
+public final class Snake {
+    /**
+     * Enum class with methods concerning the snake direction
+     */
     public enum Direction{
         UP {
             @Override
             public Field getNextField(final Field current) {
                 return new Field(current.getRow() - 1, current.getCol());
+            }
 
-            };
+            @Override
+            public Direction getOpposite() {
+                return Direction.DOWN;
+            }
         },
         DOWN {
             @Override
             public Field getNextField(Field current) {
                 return new Field(current.getRow() + 1, current.getCol());
+            }
+
+            @Override
+            public Direction getOpposite() {
+                return Direction.UP;
             }
         },
         LEFT {
@@ -29,21 +45,46 @@ public class Snake {
             public Field getNextField(Field current) {
                 return new Field(current.getRow(), current.getCol() - 1);
             }
+
+            @Override
+            public Direction getOpposite() {
+                return Direction.RIGHT;
+            }
         },
         RIGHT {
             @Override
             public Field getNextField(Field current) {
                 return new Field(current.getRow(), current.getCol() + 1);
             }
+
+            @Override
+            public Direction getOpposite() {
+                return Direction.LEFT;
+            }
         };
 
+        /**
+         * Returns next field according to given direction
+         *
+         * @param current current field
+         * @return next field
+         */
         public abstract Field getNextField(final Field current);
+
+        /**
+         * Returns the opposite direction
+         *
+         * @return
+         */
+        public abstract Direction getOpposite();
     }
 
     private LinkedList<Field> snakeBody;
+    // the most recent field that the snake is no longer on
+    private Field recentlyLeft;
     private Direction direction;
     private boolean reversed;
-    private static final char SNAKE_SYMBOL = '*';
+    public static final char SNAKE_SYMBOL = '*';
 
     public Snake(final Field start) {
         direction = Direction.RIGHT;
@@ -55,10 +96,34 @@ public class Snake {
         reversed = false;
     }
 
+    /**
+     * Modifies snake according to current direction
+     */
     public void move() {
         Field head = getHead();
         addFirst(direction.getNextField(head));
-        removeLast();
+        recentlyLeft = removeLast();
+    }
+
+    /**
+     * Changes direction according to stroke
+     * (doesn't change if new direction is the same or opposite to current)
+     * @param stroke key pressed by user
+     */
+    public void changeDirection(KeyStroke stroke) {
+        Direction newDirection = keyToDirectionMap.get(stroke.getKeyType());
+        if(newDirection != null && this.direction != newDirection &&
+                this.direction.getOpposite() != newDirection) {
+            this.direction = newDirection;
+        }
+    }
+
+    /**
+     * Reverses the snake movement
+     */
+    public void reverse() {
+        this.reversed = !this.reversed;
+        this.direction = this.direction.getOpposite();
     }
 
     public Field getHead() {
@@ -68,8 +133,11 @@ public class Snake {
     public Field getLast() {
         return reversed ? snakeBody.getFirst(): snakeBody.getLast();
     }
+    public Field getRecentlyLeft() {
+        return recentlyLeft;
+    }
 
-    public void addFirst(final Field field) {
+    private void addFirst(final Field field) {
         if (reversed) {
             snakeBody.addLast(field);
         }
@@ -78,12 +146,21 @@ public class Snake {
         }
     }
 
-    public void removeLast() {
-        if (reversed) {
-            snakeBody.removeFirst();
+    public void addLast(final Field field) {
+        if(reversed) {
+            snakeBody.addFirst(field);
         }
         else {
-            snakeBody.removeLast();
+            snakeBody.addLast(field);
+        }
+    }
+
+    private Field removeLast() {
+        if (reversed) {
+            return snakeBody.removeFirst();
+        }
+        else {
+            return snakeBody.removeLast();
         }
     }
 
@@ -92,20 +169,16 @@ public class Snake {
         return new ArrayList<>(snakeBody);
     }
 
-    public char getSnakeSymbol() {
-        return SNAKE_SYMBOL;
+    public int getSize() {
+        return snakeBody.size();
     }
 
-//    public void keyPressed(KeyEvent e) {
-//        this.direction = keyToDirectionMap.get(e.getKeyCode());
-//    }
-//
-//    private static final Map<Integer, Direction> keyToDirectionMap = new HashMap<>(
-//            Map.ofEntries(
-//                    new AbstractMap.SimpleEntry<> (KeyEvent.VK_LEFT, Direction.LEFT),
-//                    new AbstractMap.SimpleEntry<> (KeyEvent.VK_UP, Direction.UP),
-//                    new AbstractMap.SimpleEntry<> (KeyEvent.VK_RIGHT, Direction.RIGHT),
-//                    new AbstractMap.SimpleEntry<> (KeyEvent.VK_DOWN, Direction.DOWN)
-//            )
-//    );
+    private static final Map<KeyType, Direction> keyToDirectionMap = new HashMap<>(
+            Map.ofEntries(
+                    new AbstractMap.SimpleEntry<> (KeyType.ArrowLeft, Direction.LEFT),
+                    new AbstractMap.SimpleEntry<> (KeyType.ArrowUp, Direction.UP),
+                    new AbstractMap.SimpleEntry<> (KeyType.ArrowRight, Direction.RIGHT),
+                    new AbstractMap.SimpleEntry<> (KeyType.ArrowDown, Direction.DOWN)
+            )
+    );
 }

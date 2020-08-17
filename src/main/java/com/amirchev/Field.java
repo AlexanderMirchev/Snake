@@ -1,6 +1,9 @@
 package com.amirchev;
 
-public class Field {
+/**
+ * Field class for representation of pair of row and columns
+ */
+public final class Field {
     private int row;
     private int col;
 
