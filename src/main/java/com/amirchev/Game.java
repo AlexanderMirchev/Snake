@@ -33,7 +33,7 @@ public final class Game {
      * @throws InterruptedException
      * @throws IOException
      */
-    public int run() throws InterruptedException, IOException {
+    public final int run() throws InterruptedException, IOException {
         TextGraphics tg = screen.newTextGraphics();
         screen.startScreen();
         int delay = 500;
@@ -89,7 +89,7 @@ public final class Game {
 
     private void drawSnake() {
         snake.getSnake().forEach((Field field) ->
-            terrain.setField(field, snake.SNAKE_SYMBOL));
+            terrain.setField(field, Snake.SNAKE_SYMBOL));
     }
 
     private Boost generateAndDrawBoost() {

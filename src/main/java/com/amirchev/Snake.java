@@ -4,8 +4,6 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.AbstractMap;
@@ -14,51 +12,52 @@ import java.util.AbstractMap;
  * Class representing snake
  */
 public final class Snake {
+
     /**
      * Enum class with methods concerning the snake direction
      */
     public enum Direction{
         UP {
             @Override
-            public Field getNextField(final Field current) {
+            public final Field getNextField(final Field current) {
                 return new Field(current.getRow() - 1, current.getCol());
             }
 
             @Override
-            public Direction getOpposite() {
+            public final Direction getOpposite() {
                 return Direction.DOWN;
             }
         },
         DOWN {
             @Override
-            public Field getNextField(Field current) {
+            public final Field getNextField(Field current) {
                 return new Field(current.getRow() + 1, current.getCol());
             }
 
             @Override
-            public Direction getOpposite() {
+            public final Direction getOpposite() {
                 return Direction.UP;
             }
         },
         LEFT {
             @Override
-            public Field getNextField(Field current) {
+            public final Field getNextField(Field current) {
                 return new Field(current.getRow(), current.getCol() - 1);
             }
 
             @Override
-            public Direction getOpposite() {
+            public final Direction getOpposite() {
                 return Direction.RIGHT;
             }
         },
         RIGHT {
             @Override
-            public Field getNextField(Field current) {
+            public final Field getNextField(Field current) {
                 return new Field(current.getRow(), current.getCol() + 1);
             }
 
             @Override
-            public Direction getOpposite() {
+            public final Direction getOpposite() {
                 return Direction.LEFT;
             }
         };
@@ -90,6 +89,7 @@ public final class Snake {
         direction = Direction.RIGHT;
         snakeBody = new LinkedList<>();
         snakeBody.add(start);
+        // Snake body could overlap with obstacles
         for (int i = 0; i< 2; i++) {
             snakeBody.addFirst(direction.getNextField(getHead()));
         }
@@ -119,6 +119,18 @@ public final class Snake {
     }
 
     /**
+     * Adds the last recently left square to the end
+     */
+    public void grow() {
+        if(reversed) {
+            snakeBody.addFirst(recentlyLeft);
+        }
+        else {
+            snakeBody.addLast(recentlyLeft);
+        }
+    }
+
+    /**
      * Reverses the snake movement
      */
     public void reverse() {
@@ -126,15 +138,20 @@ public final class Snake {
         this.direction = this.direction.getOpposite();
     }
 
-    public Field getHead() {
+    public final Field getHead() {
         return reversed ? snakeBody.getLast(): snakeBody.getFirst();
     }
 
-    public Field getLast() {
-        return reversed ? snakeBody.getFirst(): snakeBody.getLast();
-    }
-    public Field getRecentlyLeft() {
+    public final Field getRecentlyLeft() {
         return recentlyLeft;
+    }
+
+    public final LinkedList<Field> getSnake() {
+        return snakeBody;
+    }
+
+    public final int getSize() {
+        return snakeBody.size();
     }
 
     private void addFirst(final Field field) {
@@ -146,15 +163,6 @@ public final class Snake {
         }
     }
 
-    public void addLast(final Field field) {
-        if(reversed) {
-            snakeBody.addFirst(field);
-        }
-        else {
-            snakeBody.addLast(field);
-        }
-    }
-
     private Field removeLast() {
         if (reversed) {
             return snakeBody.removeFirst();
@@ -162,15 +170,6 @@ public final class Snake {
         else {
             return snakeBody.removeLast();
         }
-    }
-
-    public List<Field> getSnake() {
-        System.out.println(snakeBody.size());
-        return new ArrayList<>(snakeBody);
-    }
-
-    public int getSize() {
-        return snakeBody.size();
     }
 
     private static final Map<KeyType, Direction> keyToDirectionMap = new HashMap<>(

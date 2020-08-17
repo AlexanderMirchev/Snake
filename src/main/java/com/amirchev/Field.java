@@ -12,10 +12,10 @@ public final class Field {
         this.col = col;
     }
 
-    public int getRow() {
+    public final int getRow() {
         return row;
     }
-    public int getCol() {
+    public final int getCol() {
         return col;
     }
 

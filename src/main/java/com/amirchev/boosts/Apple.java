@@ -25,7 +25,7 @@ public final class Apple implements Boost {
 
     @Override
     public void applyOn(Snake snake) {
-        snake.addLast(snake.getRecentlyLeft());
+        snake.grow();
         isEaten = true;
     }
 

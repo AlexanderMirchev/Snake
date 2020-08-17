@@ -1,9 +1,6 @@
 package com.amirchev;
 
-import com.amirchev.exceptions.InvalidLineWidth;
-import com.amirchev.exceptions.InvalidTerrainDimensionsException;
-import com.amirchev.exceptions.InvalidTerrainFormat;
-import com.amirchev.exceptions.InvalidTerrainHeight;
+import com.amirchev.exceptions.*;
 import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.graphics.BasicTextImage;
 import com.googlecode.lanterna.graphics.TextImage;
@@ -21,6 +18,7 @@ public final class Terrain {
     public static final char GRASS_SYMBOL=' ';
 
     private TextImage terrain;
+    private String filename;
 
     /**
      * Deserializes string from file with filename - first pair of integers are the dimensions of the terrain,
@@ -33,26 +31,23 @@ public final class Terrain {
     public Terrain(final String filename) throws FileNotFoundException, InvalidTerrainFormat {
 
         try (Scanner in = new Scanner(new File(filename))) {
-            this.terrain = initTerrain(in, filename);
+            this.terrain = initTerrain(in);
+            this.filename = filename;
 
-            int lines = 0;
+            int lineIndex = 0;
             while (in.hasNextLine()) {
                 String line = in.nextLine();
-                if(line.length() < terrain.getSize().getColumns()) {
-                    throw new InvalidLineWidth(line.length(), terrain.getSize().getColumns(), 3 + lines, filename);
-                }
-                for (int i = 0 ; i < line.length(); i++) {
-                    terrain.setCharacterAt(i, lines, new TextCharacter(line.charAt(i)));
-                }
-                lines++;
+
+                checkLineWidth(line, lineIndex);
+                readLine(line, lineIndex);
+
+                lineIndex++;
             }
-            if(lines < this.terrain.getSize().getRows()) {
-                throw  new InvalidTerrainHeight(terrain.getSize().getRows(), lines, filename);
-            }
+            checkInputHeight(lineIndex);
         }
     }
 
-    public TextImage getTerrain() {
+    public final TextImage getTerrain() {
         return this.terrain;
     }
 
@@ -60,20 +55,21 @@ public final class Terrain {
         this.terrain.setCharacterAt(field.getCol(), field.getRow(), new TextCharacter(symbol));
     }
 
-    public char getField(final Field field) {
+    public final char getField(final Field field) {
         return this.terrain.getCharacterAt(field.getCol(), field.getRow()).getCharacter();
     }
 
-    public int getWidth() {
+    public final int getWidth() {
         return this.terrain.getSize().getColumns();
     }
 
-    public int getHeight() {
+    public final int getHeight() {
         return this.terrain.getSize().getRows();
     }
 
-    private TextImage initTerrain(Scanner scanner, final String filename) throws InvalidTerrainDimensionsException {
+    private TextImage initTerrain(Scanner scanner) throws InvalidTerrainDimensionsException {
         int width,height;
+
         try {
             width = scanner.nextInt();
         }
@@ -89,5 +85,30 @@ public final class Terrain {
         }
         scanner.nextLine();
         return new BasicTextImage(width, height);
+    }
+
+    private void readLine(final String line, final int lineNumber) throws InvalidTerrainBorder {
+        for (int i = 0 ; i < line.length(); i++) {
+
+            char character = line.charAt(i);
+            if(lineNumber == 0 || lineNumber == getHeight() - 1 || i == 0 || i == line.length() - 1) {
+                if (character != Terrain.BRICK_SYMBOL) {
+                    throw new InvalidTerrainBorder(character, BRICK_SYMBOL, i, 3 + lineNumber, filename);
+                }
+            }
+            terrain.setCharacterAt(i, lineNumber, new TextCharacter(character));
+        }
+    }
+
+    private void checkLineWidth(final String line, final int lineIndex) throws InvalidLineWidth {
+        if(line.length() < terrain.getSize().getColumns()) {
+            throw new InvalidLineWidth(line.length(), terrain.getSize().getColumns(), 3 + lineIndex, filename);
+        }
+    }
+
+    private void checkInputHeight(final int numberOfLines) throws InvalidTerrainHeight {
+        if(numberOfLines < this.terrain.getSize().getRows()) {
+            throw new InvalidTerrainHeight(terrain.getSize().getRows(), numberOfLines, filename);
+        }
     }
 }
