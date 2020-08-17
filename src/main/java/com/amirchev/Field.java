@@ -4,8 +4,8 @@ package com.amirchev;
  * Field class for representation of pair of row and columns
  */
 public final class Field {
-    private int row;
-    private int col;
+    private final int row;
+    private final int col;
 
     public Field(int row, int col) {
         this.row = row;

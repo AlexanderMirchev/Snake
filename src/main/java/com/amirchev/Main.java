@@ -17,7 +17,7 @@ public final class Main {
         try {
             Terrain terrain = new Terrain(filename);
             Game game = new Game(terrain);
-            System.out.println(String.format("Game over! Your score %d", game.run()));
+            System.out.println(String.format("Game over! Your score is %d", game.run()));
         }
         catch (InvalidTerrainFormat e) {
             System.out.println(e.getMessage());

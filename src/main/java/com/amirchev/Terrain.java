@@ -18,7 +18,7 @@ public final class Terrain {
     public static final char GRASS_SYMBOL=' ';
 
     private TextImage terrain;
-    private String filename;
+    private final String filename;
 
     /**
      * Deserializes string from file with filename - first pair of integers are the dimensions of the terrain,
@@ -26,7 +26,7 @@ public final class Terrain {
      *
      * @param filename - should be existing file with 2 integers and according number of lines representing field
      * @throws FileNotFoundException on wrong file name
-     * @throws InvalidTerrainFormat
+     * @throws InvalidTerrainFormat if file does not fit description
      */
     public Terrain(final String filename) throws FileNotFoundException, InvalidTerrainFormat {
 
